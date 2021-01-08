@@ -98,6 +98,7 @@ public class MenuInput : MonoBehaviour
         //Controller 999 is used as noinput for trainingmode
         if (PlayerController != 0 && PlayerController != 999)
         {
+            //Find the face buttons for the controller that the player is using and store them
             AButton = InputControl.mapButtons("A", player);
             BButton = InputControl.mapButtons("B", player);
             XButton = InputControl.mapButtons("X", player);
