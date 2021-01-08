@@ -66,8 +66,8 @@ public class MenuInput : MonoBehaviour
         return x;
     }
 
-    public void getInputs()
-    {
+    public void getInputs() { 
+    
         //Gets gets controller data depending on which player this object belongs to
         switch (this.player) {
             case 1:
@@ -93,50 +93,43 @@ public class MenuInput : MonoBehaviour
         }
 
         //Controller 999 is used as noinput for trainingmode
-        if (PlayerController != 0 && PlayerController != 999)
-        {
+        if (PlayerController != 0 && PlayerController != 999) { 
+
             //Find the face buttons for the controller that the player is using and store them
             AButton = InputControl.mapButtons("A", player);
             BButton = InputControl.mapButtons("B", player);
             XButton = InputControl.mapButtons("X", player);
             STARTButton = InputControl.mapButtons("STR", player);
 
-            //Chekcs to see if the button is pressed by the joystick this player owns
-            if (Input.GetKeyDown("joystick " + (PlayerController) + " button " + AButton))
-            {
+            //Checks to see if the button is pressed by the joystick this player owns
+            if (Input.GetKeyDown("joystick " + (PlayerController) + " button " + AButton)) { 
                 A = 1;
             }
-            if (Input.GetKeyDown("joystick " + (PlayerController) + " button " + BButton))
-            {
+            if (Input.GetKeyDown("joystick " + (PlayerController) + " button " + BButton)) { 
                 B = 1;
             }
-            if (Input.GetKeyDown("joystick " + (PlayerController) + " button " + XButton))
-            {
+            if (Input.GetKeyDown("joystick " + (PlayerController) + " button " + XButton)) { 
                 X = 1;
             }
-            if (Input.GetKeyDown("joystick " + (PlayerController) + " button " + STARTButton))
-            {
+            if (Input.GetKeyDown("joystick " + (PlayerController) + " button " + STARTButton)) { 
                 START = 1;
             }
+            
 
             //Controls the stick values read by menu objects
             if (LX < deadzone * -1) {
                 right = false;
                 left = true;
             }
-            else if (LX > deadzone)
-            {
+            else if (LX > deadzone) {   
                 left = false;
                 right = true;
             }
-            if (LY < deadzone * -1)
-            {
+            if (LY < deadzone * -1) {   
                 down = false;
                 up = true;
-
             }
-            else if (LY > deadzone)
-            {
+            else if (LY > deadzone) {
                 up = false;
                 down = true;
             }
@@ -144,8 +137,7 @@ public class MenuInput : MonoBehaviour
                 right = false;
                 left = false;
             }
-            if (Mathf.Abs(LY) < deadzone)
-            {
+            if (Mathf.Abs(LY) < deadzone) { 
                 up = false;
                 down = false;
             }
