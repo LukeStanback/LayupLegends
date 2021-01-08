@@ -2,8 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-//This script controls the sticky hand after the player has activated the ability
-
 
 public class StickyScript : MonoBehaviour
 {
@@ -16,9 +14,8 @@ public class StickyScript : MonoBehaviour
     private GameObject heldPlayer;
     private PlayerMovement parent;
 
-    public Sprite frame1;
-    public Sprite frame2;
-    public Sprite frame3;
+    public Sprite[] frames;
+    
 
     private Vector2 target;
     private Vector2 offset = new Vector2();
@@ -213,17 +210,17 @@ public class StickyScript : MonoBehaviour
     public void updateSprite(int s) {
         switch (s) {
             case 1:
-                hand.GetComponent<SpriteRenderer>().sprite = frame1;
+                hand.GetComponent<SpriteRenderer>().sprite = frames[0];
                 break;
             case 2:
-                hand.GetComponent<SpriteRenderer>().sprite = frame2;
+                hand.GetComponent<SpriteRenderer>().sprite = frames[1];
                 break;
             case 3:
-                hand.GetComponent<SpriteRenderer>().sprite = frame3;
+                hand.GetComponent<SpriteRenderer>().sprite = frames[2];
                 offset = new Vector2(0, -4);
                 break;
             default:
-                hand.GetComponent<SpriteRenderer>().sprite = frame1;
+                hand.GetComponent<SpriteRenderer>().sprite = frames[0];
                 break;
 
         }
