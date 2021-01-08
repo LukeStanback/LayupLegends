@@ -92,9 +92,6 @@ public class MenuInput : MonoBehaviour
                 break;
         }
 
-
-
-
         //Controller 999 is used as noinput for trainingmode
         if (PlayerController != 0 && PlayerController != 999)
         {
@@ -105,19 +102,19 @@ public class MenuInput : MonoBehaviour
             STARTButton = InputControl.mapButtons("STR", player);
 
             //Chekcs to see if the button is pressed by the joystick this player owns
-            if (Input.GetKeyDown("joystick " + (PlayerController) + " button " + InputControl.mapButtons("A", player)))
+            if (Input.GetKeyDown("joystick " + (PlayerController) + " button " + AButton))
             {
                 A = 1;
             }
-            if (Input.GetKeyDown("joystick " + (PlayerController) + " button " + InputControl.mapButtons("B", player)))
+            if (Input.GetKeyDown("joystick " + (PlayerController) + " button " + BButton))
             {
                 B = 1;
             }
-            if (Input.GetKeyDown("joystick " + (PlayerController) + " button " + InputControl.mapButtons("X", player)))
+            if (Input.GetKeyDown("joystick " + (PlayerController) + " button " + XButton))
             {
                 X = 1;
             }
-            if (Input.GetKeyDown("joystick " + (PlayerController) + " button " + InputControl.mapButtons("STR", player)))
+            if (Input.GetKeyDown("joystick " + (PlayerController) + " button " + STARTButton))
             {
                 START = 1;
             }
@@ -157,8 +154,6 @@ public class MenuInput : MonoBehaviour
         }
 
     }
-
-
 
     //Clear all inputs from the last frame
     public void clearInputs()
