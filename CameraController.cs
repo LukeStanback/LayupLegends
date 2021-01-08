@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+
+//This script attaches to the main camera in a scene and controls how it moves.
 public class CameraController : MonoBehaviour
 {
     private string mode = "";
