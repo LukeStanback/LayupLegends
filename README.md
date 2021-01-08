@@ -7,6 +7,11 @@
 
 <br/>
 
+#### Plasma Beam Ability: <br/> ####
+![](preview/PlasmaBeam.gif) <br/>
+
+<br/>
+
 #### Character Customization See: [MenuInput.cs](MenuInput.cs) and [PlayerSelector.cs](PlayerSelector.cs) : <br/> ####
 ![](preview/Selector.gif) <br/>
 
