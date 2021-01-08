@@ -30,7 +30,7 @@ public class MenuInput : MonoBehaviour
     private int BButton = 2;
     private int XButton = 0;
     private int STARTButton = 9;
-    const float deadzone = 0.25f;
+    private const float deadzone = 0.25f;
 
     //These variables are states/inputs accessed by other scripts
     private int A;
