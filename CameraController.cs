@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-
-//This script attaches to the main camera in a scene and controls how it moves.
 public class CameraController : MonoBehaviour
 {
-    private string mode = "";
-
+    
+    //Camera dim/focus effect variables
     public bool isDim = false;
     public bool strikeDim = false;
     private float dimMax = 0.8f;
@@ -17,42 +15,41 @@ public class CameraController : MonoBehaviour
     public float strikeDelay = 0f;
     public float dimDelay = 0f;
 
-    public bool fixedCam = false;
+    
 
-    public float xConstraint;
-    public float yConstraint;
-
+    
+    //Camera movement variables
     public float xShake;
     public float yShake;
     public float duoShake;
     public float shakeIntensity;
     private const float frameMultiplier = 60;
-
     private Vector2 currentPos = new Vector2(0,0);
     private Vector2 targetPos = new Vector2(0, 0);
     private Vector2 posOffset = new Vector2(0, 0);
     private Vector2 targetOffset = new Vector2(0, 0);
-
+    private string mode = "";
+    public bool fixedCam = false;
     private float baseCamSpeed = 1f;
     private float baseCamSmoothX = 12f;
     private float baseCamSmoothY = 16f;
     private float camSpeedScale = 1f;
     private float deltaOffset = 60f;
-
-
+    public float xConstraint;
+    public float yConstraint;
     public float targetZoom = 180;
     private float currentZoom = 180;
     public float maxZoom = 270;
     private float minZoom = 180f;
     private float zoomSpeedScale = 1.0f;
     private float zoomSpeedAmt = 1f;
-
-
     private float baseCamXZoom;
     private float baseCamYZoom;
     private float targetXZoom;
     private float targetYZoom;
+    private List<Vector2> targets;
 
+    //Map Constraints Controlled by the scene file
     public float xMaxBase = 510;
     public float yMaxBase;
     public float yMinBase;
@@ -61,10 +58,6 @@ public class CameraController : MonoBehaviour
     private float yMin;
 
     public bool endShake = false;
-
-
-    private List<Vector2> targets;
-
 
 
     public float getZoom() {
@@ -98,7 +91,38 @@ public class CameraController : MonoBehaviour
         transform.position = new Vector3(currentPos.x + posOffset.x, currentPos.y + posOffset.y, transform.position.z);
     }
 
-    
+    //This method handles the dimming effect for the blade/beam supers
+    public void dim() {
+        if (dimDelay > 0) dimDelay--;
+        if (strikeDelay > 0) strikeDelay -= 1f * InputControl.globalTime;
+        if (isDim && currentDim < dimMax &&!strikeDim) {
+            currentDim += dimSpeed;
+        }
+        if (!isDim && currentDim > 0 && dimDelay <= 0 && !strikeDim)
+        {
+            currentDim -= dimSpeed;
+        }
+
+        if (strikeDim && currentDim < dimMax)
+        {
+            currentDim += dimSpeed * 5;
+        }
+        if (strikeDim && currentDim > 0 && strikeDelay <= 0)
+        {
+            currentDim -= dimSpeed;
+        }
+
+        if (currentDim >= dimMax) {
+            currentDim = dimMax;
+        }
+        else if (currentDim <= 0) {
+            currentDim = 0;
+        }
+        if (strikeDelay <= 0) {
+            strikeDim = false;
+        }
+        transform.Find("Dimmer").GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, currentDim);
+    }
 
     public void setPos(Vector3 p) {
         currentPos = p;
@@ -106,7 +130,7 @@ public class CameraController : MonoBehaviour
 
     
 
-    
+    //Keeps the camera within its constraints
     private void clamp() {
         //These 3 lines calculate where the camera should stop based on the current zoom level.
         //Makes sure that the blastzones are never visible
@@ -150,6 +174,7 @@ public class CameraController : MonoBehaviour
         
     }
 
+    //Finds the average position between all trackable objects
     private void findAvgPosition() {
         //This method finds all objects in the scene with the CameraAnchor attached, and then parses through them to find
         //The middle position between the two farthest objects
@@ -236,41 +261,6 @@ public class CameraController : MonoBehaviour
 
     public void setTargetPos(float x, float y) {
         setTargetPos(new Vector2(x, y));
-    }
-
-
-
-    //This method handles the dimming effect for the blade/beam supers
-    public void dim() {
-        if (dimDelay > 0) dimDelay--;
-        if (strikeDelay > 0) strikeDelay -= 1f * InputControl.globalTime;
-        if (isDim && currentDim < dimMax &&!strikeDim) {
-            currentDim += dimSpeed;
-        }
-        if (!isDim && currentDim > 0 && dimDelay <= 0 && !strikeDim)
-        {
-            currentDim -= dimSpeed;
-        }
-
-        if (strikeDim && currentDim < dimMax)
-        {
-            currentDim += dimSpeed * 5;
-        }
-        if (strikeDim && currentDim > 0 && strikeDelay <= 0)
-        {
-            currentDim -= dimSpeed;
-        }
-
-        if (currentDim >= dimMax) {
-            currentDim = dimMax;
-        }
-        else if (currentDim <= 0) {
-            currentDim = 0;
-        }
-        if (strikeDelay <= 0) {
-            strikeDim = false;
-        }
-        transform.Find("Dimmer").GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, currentDim);
     }
 
    
