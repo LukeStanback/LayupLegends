@@ -96,38 +96,7 @@ public class CameraController : MonoBehaviour
         transform.position = new Vector3(currentPos.x + posOffset.x, currentPos.y + posOffset.y, transform.position.z);
     }
 
-    //This method handles the dimming effect for the blade/beam supers
-    public void dim() {
-        if (dimDelay > 0) dimDelay--;
-        if (strikeDelay > 0) strikeDelay -= 1f * InputControl.globalTime;
-        if (isDim && currentDim < dimMax &&!strikeDim) {
-            currentDim += dimSpeed;
-        }
-        if (!isDim && currentDim > 0 && dimDelay <= 0 && !strikeDim)
-        {
-            currentDim -= dimSpeed;
-        }
-
-        if (strikeDim && currentDim < dimMax)
-        {
-            currentDim += dimSpeed * 5;
-        }
-        if (strikeDim && currentDim > 0 && strikeDelay <= 0)
-        {
-            currentDim -= dimSpeed;
-        }
-
-        if (currentDim >= dimMax) {
-            currentDim = dimMax;
-        }
-        else if (currentDim <= 0) {
-            currentDim = 0;
-        }
-        if (strikeDelay <= 0) {
-            strikeDim = false;
-        }
-        transform.Find("Dimmer").GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, currentDim);
-    }
+    
 
     public void setPos(Vector3 p) {
         currentPos = p;
@@ -265,6 +234,41 @@ public class CameraController : MonoBehaviour
 
     public void setTargetPos(float x, float y) {
         setTargetPos(new Vector2(x, y));
+    }
+
+
+
+    //This method handles the dimming effect for the blade/beam supers
+    public void dim() {
+        if (dimDelay > 0) dimDelay--;
+        if (strikeDelay > 0) strikeDelay -= 1f * InputControl.globalTime;
+        if (isDim && currentDim < dimMax &&!strikeDim) {
+            currentDim += dimSpeed;
+        }
+        if (!isDim && currentDim > 0 && dimDelay <= 0 && !strikeDim)
+        {
+            currentDim -= dimSpeed;
+        }
+
+        if (strikeDim && currentDim < dimMax)
+        {
+            currentDim += dimSpeed * 5;
+        }
+        if (strikeDim && currentDim > 0 && strikeDelay <= 0)
+        {
+            currentDim -= dimSpeed;
+        }
+
+        if (currentDim >= dimMax) {
+            currentDim = dimMax;
+        }
+        else if (currentDim <= 0) {
+            currentDim = 0;
+        }
+        if (strikeDelay <= 0) {
+            strikeDim = false;
+        }
+        transform.Find("Dimmer").GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, currentDim);
     }
 
    
