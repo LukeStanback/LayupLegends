@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+//This script controls the sticky hand after the player has activated the ability
+
 
 public class StickyScript : MonoBehaviour
 {
