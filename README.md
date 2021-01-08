@@ -1,2 +1,3 @@
 # Layup Legends
-https://youtube.com/embed/YgSjQWElBGg
+[![Alt text](https://img.youtube.com/vi/YgSjQWElBGg/0.jpg)](https://www.youtube.com/watch?v=YgSjQWElBGg)
+
