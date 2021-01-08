@@ -18,33 +18,34 @@ public struct menuInputState {
 
 public class MenuInput : MonoBehaviour
 {
+    //What player this script belongs to
     public int player;
 
+    //This is the ID of the USB controller the player is using
     public int PlayerController = 0;
-    private float LX;
-    private float LY;
+
+    //These variables read from the current controller being used and update 
+    //For example, AButton will always store the integer value of the A button (or south button) on the controller
     private int AButton = 1;
     private int BButton = 2;
     private int XButton = 0;
     private int STARTButton = 9;
     const float deadzone = 0.25f;
 
+    //These variables are states/inputs accessed by other scripts
     private int A;
     private int B;
     private int X;
     private int START;
+    private float LX;
+    private float LY;
 
-
+    //Directional inputs accessed by other scripts
     public bool left;
     public bool right;
     public bool up;
     public bool down;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
 
     // Update is called once per frame
     void Update()
