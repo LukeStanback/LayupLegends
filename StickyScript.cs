@@ -55,7 +55,7 @@ public class StickyScript : MonoBehaviour
     }
 
     //This method is called by the owner's playermovement script every frame.
-    public void updateHand(float scale, int dir, PlayerMovement p) {
+    public void updateHand(float scale, int dir) {
         //Update the direction of the stickyhand to match the player owner, if flipped(facing left), flip the hand sprite
         direction = dir;
         if (dir == -1) {
