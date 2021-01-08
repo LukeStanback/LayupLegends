@@ -2,7 +2,7 @@
 
 ## These are some gifs from the game, a link to video gameplay footage can be found at the bottom ##
 
-![](preview/Selector.gif)
+![](preview/Selector.gif) <br/>
 Character Customization. See: [MenuInput.cs](MenuInput.cs) and [PlayerSelector.cs](PlayerSelector.cs) <br/>
 
 
