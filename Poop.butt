@@ -1,0 +1,1181 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+//This script controls the player customization boxes
+
+
+public class PlayerSelector : MonoBehaviour
+{
+
+
+    public Sprite readySprite;
+    public Sprite noControls;
+    public Sprite Controls;
+    private SpriteRenderer tagSprite;
+    private SpriteRenderer controlSprite;
+
+    [SerializeField]
+    buttonLayout temp = new buttonLayout();
+    
+
+    private float LX;
+    private float LY;
+    private int A;
+    private int B;
+    private int X;
+    private int START;
+
+    public bool ready = false;
+    public bool joined = false;
+
+    public int joinstate = 0;
+
+    //Animation
+    private const float initialYPlatform = -900f;
+    private const float CSSplatform = -438f;
+    private const float SSSplatform = -518f;
+    private const float deltaOffset = 60f;
+
+
+    //Arrows
+    private const float headY = 180f;
+    private const float superY = 0f;
+    private const float colorY = -180f;
+
+    private const float initialYBar = 900f;
+    private const float CSSBar = 170f;
+
+
+    private float targetY = initialYPlatform;
+    private float targetYBar = initialYBar;
+    public float targetYArrow = headY;
+    public float targetX;
+    private float initX;
+
+    public string currentHead = "Default";
+    public string currentSuper = "Rocketpack";
+    public string currentColor = "white";
+    public int headIndex = 0;
+    public int superIndex = 0;
+    public int colorIndex = 0;
+    public int yIndex = 0;
+    private const float selectorCD = 15f;
+    private float CD = 0;
+    private bool readyCD = false;
+
+
+
+
+    //All the stuff for rebind controls
+    public int rebindAxis = 0;
+    public bool isRebinding = false;
+    string buttonToRebind = "";
+    public bool bindCD = false;
+    
+
+
+
+
+    public MenuInput input;
+    public CSSHandler handler;
+    GameObject TAG;
+    GameObject platform;
+    GameObject bar;
+    GameObject arrow;
+    GameObject super;
+    GameObject selHead;
+    GameObject window;
+    SpriteRenderer color;
+    SpriteRenderer body;
+    SpriteRenderer head;
+    GameObject tags;
+    GameObject tagBar;
+    GameObject keySelector;
+    GameObject tagEntryWindow;
+
+
+    GameObject tag_1;
+    GameObject tag_2;
+    GameObject tag_3;
+    GameObject tag_4;
+    GameObject tag_5;
+    GameObject tag_6;
+
+    public int tagIndex = -2;
+    int tagSelectorIndex = 0;
+    string tempTag;
+
+
+    public GameObject onlineHandler;
+
+    //Need to store references to key gameobjects
+    private void OnEnable()
+    {
+        
+        input = GetComponent<MenuInput>();
+        TAG = transform.Find("Pillar").Find("Tag").gameObject;
+        platform = transform.Find("Pillar").gameObject;
+        bar = transform.Find("Bar").gameObject;
+        arrow = bar.transform.Find("Arrows").gameObject;
+        body = transform.Find("Pillar").Find("PlayerPreview").Find("BodyOrigin").Find("Body").GetComponent<SpriteRenderer>();
+        head = transform.Find("Pillar").Find("PlayerPreview").Find("HeadOrigin").Find("HeadPos").GetComponent<SpriteRenderer>();
+        super = bar.transform.Find("Super").gameObject;
+        selHead = bar.transform.Find("selHead").gameObject;
+        color = bar.transform.Find("Color").GetComponent<SpriteRenderer>();
+        tagSprite = platform.transform.Find("tagSelect").GetComponent<SpriteRenderer>();
+        controlSprite = platform.transform.Find("controlSelect").GetComponent<SpriteRenderer>();
+        window = platform.transform.Find("ControlSettings").gameObject;
+        tags = platform.transform.Find("TagStuff").gameObject;
+        tagBar = tags.transform.Find("Window").Find("SelectorBar").gameObject;
+
+        tag_1 = tags.transform.Find("Window").Find("Tag1").gameObject;
+        tag_2 = tags.transform.Find("Window").Find("Tag2").gameObject;
+        tag_3= tags.transform.Find("Window").Find("Tag3").gameObject;
+        tag_4 = tags.transform.Find("Window").Find("Tag4").gameObject;
+        tag_5 = tags.transform.Find("Window").Find("Tag5").gameObject;
+        tag_6 = tags.transform.Find("Window").Find("Tag6").gameObject;
+
+        tagEntryWindow = transform.Find("Pillar").transform.Find("TagEntry").gameObject;
+        keySelector = transform.Find("Pillar").transform.Find("TagEntry").Find("SelectorHighlight").gameObject;
+
+    }
+        
+    //Need to store references to key gameobjects
+    void Start()
+    {
+        
+        handler = GameObject.Find("CSSMASTER").GetComponent<CSSHandler>();
+        platform.transform.localPosition = new Vector2(platform.transform.localPosition.x, initialYPlatform);
+        bar.transform.localPosition = new Vector2(bar.transform.localPosition.x, initialYBar);
+        initX = transform.localPosition.x;
+        
+        //If the user is playing online, we need to initiate the online manager to sync data with other players.
+        if (InputControl.online)
+        {
+            onlineHandler = GameObject.FindGameObjectWithTag("CSSManager").gameObject;
+            StartCoroutine(sendCSSFrame(onlineHandler));
+            onlineHandler.GetComponent<CSSManager>().startSending();
+        }
+
+        tag_1.GetComponent<TextController>().setText("");
+        tag_2.GetComponent<TextController>().setText("");
+        tag_3.GetComponent<TextController>().setText("");
+        tag_4.GetComponent<TextController>().setText("");
+        tag_5.GetComponent<TextController>().setText("");
+        tag_6.GetComponent<TextController>().setText("");
+
+
+    }
+
+    private void Update()
+    {
+        move();
+        if (Input.GetKeyDown(KeyCode.Alpha3) && input.player == 2) {
+            InputControl.P2JOY = 999;
+            joined = true;
+            handler.joinUp(input.player);
+            ready = true;
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha3) && input.player == 3)
+        {
+            InputControl.P3JOY = 999;
+            colorIndex = 1;
+            currentColor = "blue";
+            InputControl.P3COLOR = teamcolors.blue;
+            
+            joined = true;
+            handler.joinUp(input.player);
+            ready = true;
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha3) && input.player == 4)
+        {
+            InputControl.P4JOY = 999;
+            joined = true;
+            handler.joinUp(input.player);
+            ready = true;
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        if (InputControl.online) {
+            onlineStuff();
+        }
+
+        //The SSS bool is enabled when the screen shifts over the the map selection
+
+        //If we are still in the customization screen, we need to check to see if players have pressed start to join the match
+        if(!handler.SSS && !InputControl.online) checkJoin();
+        //Same thing as above, but only for the local player(s) when playing online
+        if (!handler.SSS && InputControl.online && input.player == InputControl.onlinePlayerID) checkJoin();
+        
+        //If this player is ready, and we are currently on the map select screen, we need to let the player control the selector
+        if (handler.SSS && ready)
+        {
+            targetY = SSSplatform;
+            if (!InputControl.online)
+            {
+                moveSSS();
+            }
+            //When playing online, only the host/ID: 1 can control what map is selected.
+            else if(InputControl.onlinePlayerID == 1)
+            {
+                
+                moveSSS();
+            }
+            
+            
+        }
+
+        //This method updates all of the sprites on the player selector
+        visualHandling();
+        if (!handler.SSS)
+        {
+            if (!ready)
+            {
+                //When we are still on the player select screen, this method is called to allow the player to customize their character
+                moveSelector();
+            }
+            clamp();
+        }
+
+        if (!handler.SSS) updateIcons();
+        clearInputs();
+
+        //This is a simple input lockout
+        if (Mathf.Abs(LX) < 0.25f && Mathf.Abs(LY) < 0.25f) CD = 0;
+        if (CD > 0) CD--;
+
+        //These two conditions tell the playerselector where to position itself onscreen
+        if (joined && !handler.SSS)
+        {
+            targetY = CSSplatform;
+            targetYBar = CSSBar;
+        }
+        if (!joined)
+        {
+            targetY = initialYPlatform;
+            targetYBar = initialYBar;
+        }
+
+        //After we complete the game loop, we need to communicate with the global handler whether or not this player is ready.
+        handler.readyplayer(input.player, ready);
+    }
+
+
+    void onlineStuff() {
+
+    }
+
+    //Sends customization data to other players when playing online
+    public IEnumerator sendCSSFrame(GameObject oh) {
+        while (true) {
+            yield return new WaitForSeconds(0.1f);
+            if (!handler.SSS && input.player == InputControl.onlinePlayerID) {
+                CSSFrame x = new CSSFrame();
+                x.playerID = InputControl.onlinePlayerID;
+                x.currentHead = currentHead;
+                x.currentSuper = superIndex;
+                x.currentColor = currentColor;
+                x.join = joined;
+                x.ready = ready;
+                oh.GetComponent<CSSManager>().sendCSSFrameToServer(x);
+                
+            }
+            
+        }
+        
+    }
+
+    void checkJoin() {
+
+
+        if (START > 0 && !joined)
+        {
+            START = 0;
+            initJoin();
+        }
+        else if (B > 0 && joined && joinstate == 0 && !ready) {
+            joined = false;
+            InputControl.removePlayer(input.player);
+            print("Player " + input.player + " left");
+        }
+        else if (B > 0 && joined && joinstate == 0 && ready)
+        {
+            ready = false;
+            Camera.main.GetComponent<SoundLibrary>().playSoundEffect("UNREADY");
+            readyCD = true;
+            StartCoroutine(readyCoroutine());
+            
+
+        }
+
+        if (START > 0 && joined && !ready && !readyCD && joinstate == 0)
+        {
+            START = 0;
+            ready = true;
+            Camera.main.GetComponent<SoundLibrary>().playSoundEffect("READY");
+        }
+
+        if (START > 0 && ready) {
+            handler.attemptStart();
+            //print("trying start");
+        }
+
+
+        
+    }
+
+    public IEnumerator readyCoroutine() {
+        yield return new WaitForSeconds(0.5f);
+        readyCD = false;
+    }
+    public IEnumerator bindCooldown() {
+        bindCD = true;
+        yield return new WaitForSeconds(0.1f);
+        bindCD = false;
+    }
+
+    void moveSSS() {
+        if (A > 0) {
+            A = 0;
+            GameObject.FindGameObjectWithTag("SSS").GetComponent<SSSHandler>().startGame();
+        }
+
+        if (B > 0)
+        {
+            B = 0;
+            handler.SSS = false;
+            ready = false;
+            Camera.main.GetComponent<SoundLibrary>().playSoundEffect("UNREADY");
+            readyCD = true;
+            StartCoroutine(readyCoroutine());
+        }
+
+        int x = 0;
+        int y = 0;
+
+        if (CD <= 0) {
+            if (input.right)
+            {
+                x = 1;
+                CD = selectorCD;
+            }
+            else if (input.left)
+            {
+                x = -1;
+                CD = selectorCD;
+            }
+            else if (input.up)
+            {
+                y = -1;
+                CD = selectorCD;
+            }
+            else if (input.down)
+            {
+                y = 1;
+                CD = selectorCD;
+            }
+            else {
+                CD = 0;
+            }
+        }
+        
+        GameObject.FindGameObjectWithTag("SSS").GetComponent<SSSHandler>().ChangePosition(new Vector2(x, y));
+
+        if (transform.localPosition.x > targetX && !ready) {
+            float distance = Mathf.Abs(transform.localPosition.x - targetX) / 5.0f;
+            float moveamt = Mathf.Max(1, distance) * -1;
+            transform.localPosition += new Vector3(transform.localPosition.x + moveamt, transform.localPosition.y, 0);
+        }
+
+
+
+    }
+
+    void moveSelector() {
+        if (joinstate == 0)
+        {
+            window.SetActive(false);
+            tags.SetActive(false);
+            tagEntryWindow.SetActive(false);
+            baseControl();
+        }
+        else if (joinstate == 1)
+        {
+
+            rebindControl();
+            if (!bindCD)
+            {
+                checkRebind();
+            }
+        }
+        else if (joinstate == 2)
+        {
+            tagSelectorControl();
+        }
+        else if (joinstate == 3) {
+            tagEntryControl();
+        }
+
+        if (A > 0 && yIndex == 4 && joinstate == 0 && joined && !ready) {
+            rebindAxis = 0;
+            A = 0;
+            joinstate = 1;
+            temp = new buttonLayout();
+            copyTag(TagHandler.findTag(InputControl.getPlayerTag(input.player)).layout, temp);
+            window.GetComponent<ControlObjects>().initAllIcons(temp);
+            window.SetActive(true);
+        }
+
+        if (A > 0 && yIndex == 3 && joinstate == 0 && joined && !ready)
+        {
+            A = 0;
+            joinstate = 2;
+            tagIndex = -2;
+            tagSelectorIndex = 0;
+            updateAllTags();
+            tags.SetActive(true);
+            
+            
+        }
+
+
+
+
+    }
+
+    void tagEntryControl() {
+        if (input.down && CD <= 0)
+        {
+            CD = selectorCD;
+            keySelector.GetComponent<KeyboardLayout>().yIndex += 1;
+        }
+        else if (input.up && CD <= 0)
+        {
+            CD = selectorCD;
+            keySelector.GetComponent<KeyboardLayout>().yIndex -= 1;
+        }
+        else if (input.right && CD <= 0)
+        {
+            CD = selectorCD;
+            keySelector.GetComponent<KeyboardLayout>().xIndex += 1;
+        }
+        else if (input.left && CD <= 0)
+        {
+            CD = selectorCD;
+            keySelector.GetComponent<KeyboardLayout>().xIndex -= 1;
+        }
+        keySelector.GetComponent<KeyboardLayout>().clamp();
+
+        if (A > 0 && tempTag.Length < 10 && keySelector.GetComponent<KeyboardLayout>().yIndex != -1 && keySelector.GetComponent<KeyboardLayout>().yIndex != 5)
+        {
+            if (keySelector.GetComponent<KeyboardLayout>().getKey() != "SPACE")
+            {
+                tempTag += keySelector.GetComponent<KeyboardLayout>().getKey();
+            }
+            else {
+                tempTag += " ";
+            }
+            
+            A = 0;
+        }
+
+        if (B > 0 && tempTag.Length > 0)
+        {
+            tempTag = tempTag.Remove(tempTag.Length - 1);
+            B = 0;
+        }
+
+        if (B > 0 && tempTag.Length <= 0)
+        {
+            joinstate = 0;
+            tagIndex = 0;
+            tagSelectorIndex = 0;
+            B = 0;
+        }
+
+        if (A > 0 && tempTag.Length <= 0 && keySelector.GetComponent<KeyboardLayout>().yIndex == -1)
+        {
+            joinstate = 0;
+            tagIndex = 0;
+            tagSelectorIndex = 0;
+            A = 0;
+        }
+
+        if (A > 0 && tempTag.Length > 0 && keySelector.GetComponent<KeyboardLayout>().yIndex == -1)
+        {
+            tempTag = tempTag.Remove(tempTag.Length - 1);
+            A = 0;
+        }
+
+        if (START > 0 && tempTag.Length > 0)
+        {
+            TagHandler.addTag(tempTag);
+            InputControl.setPlayerTag(input.player, tempTag);
+            joinstate = 0;
+            START = 0;
+        }
+
+        if (A > 0 && tempTag.Length > 0 && keySelector.GetComponent<KeyboardLayout>().yIndex == 5)
+        {
+            TagHandler.addTag(tempTag);
+            InputControl.setPlayerTag(input.player, tempTag);
+            joinstate = 0;
+            A = 0;
+        }
+
+
+        tagEntryWindow.transform.Find("Temp").GetComponent<TextController>().setText(tempTag);
+    }
+
+    void tagSelectorControl() {
+        int thisMove = 0;
+        if (input.down && CD <= 0)
+        {
+            CD = selectorCD;
+            tagSelectorIndex += 1;
+            thisMove = 1;
+        }
+        else if (input.up && CD <= 0)
+        {
+            CD = selectorCD;
+            tagSelectorIndex -= 1;
+            thisMove = -1;
+        }
+
+        if (thisMove == -1 && tagSelectorIndex < 0) {
+            tagSelectorIndex = 0;
+            tagIndex -= 1;
+        }
+        if (tagIndex < -2) {
+            tagIndex = -2;
+        }
+
+        if (thisMove == 1 && tagSelectorIndex > 5)
+        {
+            tagSelectorIndex = 5;
+            tagIndex += 1;
+        }
+        if (tagIndex > TagHandler.TAGLIST.tags.Count - 6 && TagHandler.TAGLIST.tags.Count > 3)
+        {
+            tagIndex = TagHandler.TAGLIST.tags.Count - 6;
+        }
+        if (TagHandler.TAGLIST.tags.Count <= 3 && tagSelectorIndex > TagHandler.TAGLIST.tags.Count + 1) {
+            tagSelectorIndex = TagHandler.TAGLIST.tags.Count + 1;
+        }
+
+        if (thisMove != 0) {
+            updateAllTags();
+        }
+
+        if (A > 0 && joinstate == 2 && tagIndex >= 0) {
+            InputControl.setPlayerTag(input.player, TagHandler.TAGLIST.tags[tagIndex + tagSelectorIndex].name);
+            PlayerTag temp = TagHandler.TAGLIST.tags[tagIndex + tagSelectorIndex];
+            TagHandler.TAGLIST.tags.RemoveAt((TagHandler.findTagIndex(InputControl.getPlayerTag(input.player), TagHandler.TAGLIST)));
+            TagHandler.TAGLIST.tags.Insert(0, temp);
+            TagHandler.saveTagList();
+            updateAllTagLists();
+            joinstate = 0;
+            A = 0;
+        }
+
+        if (A > 0 && joinstate == 2 && tagIndex < 0 && tagSelectorIndex > 1)
+        {
+            InputControl.setPlayerTag(input.player, TagHandler.TAGLIST.tags[tagIndex + tagSelectorIndex].name);
+            PlayerTag temp = TagHandler.TAGLIST.tags[tagIndex + tagSelectorIndex];
+            TagHandler.TAGLIST.tags.RemoveAt((TagHandler.findTagIndex(InputControl.getPlayerTag(input.player), TagHandler.TAGLIST)));
+            TagHandler.TAGLIST.tags.Insert(0, temp);
+            TagHandler.saveTagList();
+            updateAllTagLists();
+            joinstate = 0;
+            A = 0;
+        }
+
+        if (A > 0 && joinstate == 2 && tagIndex == -2 && tagSelectorIndex == 1)
+        {
+            InputControl.setPlayerTag(input.player, "PLAYER " + input.player);
+            joinstate = 0;
+            A = 0;
+        }
+
+        if (A > 0 && joinstate == 2 && tagIndex == -1 && tagSelectorIndex == 0)
+        {
+            InputControl.setPlayerTag(input.player, "PLAYER " + input.player);
+            joinstate = 0;
+            A = 0;
+        }
+
+        //enter new tag
+        if (A > 0 && joinstate == 2 && tagIndex == -2 && tagSelectorIndex == 0)
+        {
+            joinstate = 3;
+            keySelector.GetComponent<KeyboardLayout>().clamp();
+            tags.SetActive(false);
+            tagEntryWindow.SetActive(true);
+            tempTag = "";
+            tagEntryWindow.transform.Find("Temp").GetComponent<TextController>().setText(tempTag);
+            A = 0;
+            
+        }
+
+        
+
+        if (B > 0 && joinstate == 2)
+        {
+            joinstate = 0;
+            B = 0;
+        }
+    }
+
+    void copyTag(buttonLayout from, buttonLayout to) {
+        to.attackButton = from.attackButton;
+        to.blockButton = from.blockButton;
+        to.grabButton = from.grabButton;
+        to.jumpButton = from.jumpButton;
+        to.superButton = from.superButton;
+        to.tapJump = from.tapJump;
+    }
+
+    void updateAllTagLists() {
+        GameObject[] selectors = GameObject.FindGameObjectsWithTag("Selector");
+        for (int i = 0; i < selectors.Length; i++) {
+            //print("updated taglist");
+            selectors[i].GetComponent<PlayerSelector>().updateAllTags();
+        }
+    }
+
+    public void updateAllTags() {
+        tagBar.transform.localPosition = new Vector3(-16, 130 + (-52 * tagSelectorIndex), 0);
+        
+        if (tagIndex == -2)
+        {
+            tag_1.GetComponent<TextController>().setText("NEW ENTRY");
+            tag_2.GetComponent<TextController>().setText("PLAYER " + input.player);
+        }
+        else if (tagIndex == -1)
+        {
+            tag_1.GetComponent<TextController>().setText("PLAYER " + input.player);
+            if (tagIndex + 1 < TagHandler.TAGLIST.tags.Count) tag_2.GetComponent<TextController>().setText(TagHandler.TAGLIST.tags[tagIndex + 1].name);
+        }
+        else {
+            if (tagIndex < TagHandler.TAGLIST.tags.Count) tag_1.GetComponent<TextController>().setText(TagHandler.TAGLIST.tags[tagIndex].name);
+            if (tagIndex + 1 < TagHandler.TAGLIST.tags.Count) tag_2.GetComponent<TextController>().setText(TagHandler.TAGLIST.tags[tagIndex + 1].name);
+        }
+
+        if (tagIndex + 2 < TagHandler.TAGLIST.tags.Count) tag_3.GetComponent<TextController>().setText(TagHandler.TAGLIST.tags[tagIndex + 2].name);
+        if (tagIndex + 3 < TagHandler.TAGLIST.tags.Count) tag_4.GetComponent<TextController>().setText(TagHandler.TAGLIST.tags[tagIndex + 3].name);
+        if (tagIndex + 4 < TagHandler.TAGLIST.tags.Count) tag_5.GetComponent<TextController>().setText(TagHandler.TAGLIST.tags[tagIndex + 4].name);
+        if (tagIndex + 5 < TagHandler.TAGLIST.tags.Count) tag_6.GetComponent<TextController>().setText(TagHandler.TAGLIST.tags[tagIndex + 5].name);
+
+        if (tagIndex + 6 < TagHandler.TAGLIST.tags.Count)
+        {
+            tags.transform.Find("BotArrow").GetComponent<SpriteRenderer>().enabled = true;
+        }
+        else {
+            tags.transform.Find("BotArrow").GetComponent<SpriteRenderer>().enabled = false;
+        }
+
+        tags.transform.Find("TopArrow").GetComponent<SpriteRenderer>().enabled = (tagIndex > -2);
+
+        tags.transform.Find("NewEntryBar").GetComponent<SpriteRenderer>().enabled = (tagIndex == -2);
+
+    }
+
+    void rebindControl() {
+        if (input.down && CD <= 0 && !isRebinding) {
+            CD = selectorCD;
+            rebindAxis += 1;
+        }
+        else if (input.up && CD <= 0 && !isRebinding)
+        {
+            CD = selectorCD;
+            rebindAxis -= 1;
+        }
+        if (rebindAxis < 0) rebindAxis = 6;
+        if (rebindAxis > 6) rebindAxis = 0;
+        //Rebind Setup
+        float y = 116 - (rebindAxis * 36f);
+        window.GetComponent<ControlObjects>().mover.transform.localPosition = new Vector2(window.GetComponent<ControlObjects>().mover.transform.localPosition.x, y);
+
+        //End Rebind Setup
+        if (rebindAxis != 6)
+        {
+            window.GetComponent<ControlObjects>().mover.SetActive(true);
+            window.transform.Find("Window").GetComponent<SpriteRenderer>().sprite = window.GetComponent<ControlObjects>().normal;
+        }
+        else {
+            window.GetComponent<ControlObjects>().mover.SetActive(false);
+            window.transform.Find("Window").GetComponent<SpriteRenderer>().sprite = window.GetComponent<ControlObjects>().selected;
+        }
+
+        if (A > 0 && rebindAxis == 6) {
+            A = 0;
+            joinstate = 0;
+            TagHandler.TAGLIST.tags[TagHandler.findTagIndex(InputControl.getPlayerTag(input.player), TagHandler.TAGLIST)].layout = temp;
+            TagHandler.saveTagList();
+            window.SetActive(false);
+        }
+        if (B > 0 && !isRebinding && !bindCD)
+        {
+            B = 0;
+            joinstate = 0;
+            window.SetActive(false);
+        }
+
+
+    }
+
+    void activeRebind()
+    {
+        if (!bindCD) { 
+
+        
+        int buttonpressed = InputControl.checkJoyButton(input.PlayerController);
+        if (InputControl.getPlayerTrigger("LT", input.player) > 0.3f) {
+                buttonpressed = -2;
+        }
+        if (InputControl.getPlayerTrigger("RT", input.player) > 0.3f) {
+                buttonpressed = -3;
+        }
+
+        if (buttonpressed != -1)
+        {
+            StartCoroutine(bindCooldown());
+            if (buttonToRebind == "Attack")
+            {
+                temp.attackButton = buttonpressed;
+                window.GetComponent<ControlObjects>().updateAllIcons();
+
+            }
+            else if (buttonToRebind == "Super")
+            {
+                temp.superButton = buttonpressed;
+                window.GetComponent<ControlObjects>().updateAllIcons();
+
+            }
+            else if (buttonToRebind == "Jump")
+            {
+                temp.jumpButton = buttonpressed;
+                window.GetComponent<ControlObjects>().updateAllIcons();
+
+            }
+            else if (buttonToRebind == "Defend")
+            {
+                temp.blockButton = buttonpressed;
+                window.GetComponent<ControlObjects>().updateAllIcons();
+
+            }
+            else if (buttonToRebind == "Grab")
+            {
+                temp.grabButton = buttonpressed;
+                window.GetComponent<ControlObjects>().updateAllIcons();
+
+            }
+
+            isRebinding = false;
+        }
+    }
+
+
+    }
+
+
+
+    void checkRebind() {
+        if (A > 0 && rebindAxis == 0 && !isRebinding) {
+            A = 0;
+            StartCoroutine(bindCooldown());
+            temp.tapJump = !temp.tapJump;
+            window.GetComponent<ControlObjects>().updateAllIcons();
+        }
+
+        if (rebindAxis == 1 && A > 0)
+        {
+            A = 0;
+            StartCoroutine(bindCooldown());
+            isRebinding = true;
+            window.GetComponent<ControlObjects>().attack.GetComponent<ButtonDisplay>().updateIcons(true);
+            buttonToRebind = "Attack";
+        }
+        else if (rebindAxis == 2 && A > 0)
+        {
+            A = 0;
+            StartCoroutine(bindCooldown());
+            isRebinding = true;
+            window.GetComponent<ControlObjects>().super.GetComponent<ButtonDisplay>().updateIcons(true);
+            buttonToRebind = "Super";
+        }
+        else if (rebindAxis == 3 && A > 0)
+        {
+            A = 0;
+            StartCoroutine(bindCooldown());
+            isRebinding = true;
+            window.GetComponent<ControlObjects>().jump.GetComponent<ButtonDisplay>().updateIcons(true);
+            buttonToRebind = "Jump";
+        }
+        else if (rebindAxis == 4 && A > 0)
+        {
+            A = 0;
+            StartCoroutine(bindCooldown());
+            isRebinding = true;
+            window.GetComponent<ControlObjects>().defend.GetComponent<ButtonDisplay>().updateIcons(true);
+            buttonToRebind = "Defend";
+        }
+        else if (rebindAxis == 5 && A > 0)
+        {
+            A = 0;
+            StartCoroutine(bindCooldown());
+            isRebinding = true;
+            window.GetComponent<ControlObjects>().grab.GetComponent<ButtonDisplay>().updateIcons(true);
+            buttonToRebind = "Grab";
+        }
+
+
+    }
+
+
+    void baseControl() {
+        if (input.up && CD <= 0)
+        {
+            CD = selectorCD;
+            yIndex -= 1;
+        }
+        if (input.down && CD <= 0)
+        {
+            CD = selectorCD;
+            yIndex += 1;
+        }
+        if (yIndex > 4) yIndex = 4;
+        else if (yIndex < 0) yIndex = 0;
+        if (platform.GetComponent<SpriteRenderer>().sprite == noControls && yIndex > 3) yIndex = 3;
+
+        if (input.right && CD <= 0)
+        {
+            switchItem(1);
+            CD = selectorCD;
+        }
+        if (input.left && CD <= 0)
+        {
+            switchItem(-1);
+            CD = selectorCD;
+        }
+
+        
+
+        
+    }
+
+    private void switchItem(int amt)
+    {
+        if (yIndex == 0) headIndex += amt;
+        if (yIndex == 1) superIndex += amt;
+        if (yIndex == 2) colorIndex += amt;
+    }
+
+    void getInputs() {
+        if (input != null)
+        {
+            menuInputState m = input.getState();
+            A = m.A;
+            B = m.B;
+            X = m.X;
+            START = m.START;
+            LX = m.LX;
+            LY = m.LY;
+        }
+    }
+
+    void clearInputs() {
+        A = 0;
+        B = 0;
+        X = 0;
+        START = 0;
+        if (input != null) input.clearInputs();
+    }
+
+    void visualHandling() {
+        GetComponent<SpriteRenderer>().enabled = !joined;
+        if (TAG.GetComponent<TextController>().text != InputControl.getPlayerTag(input.player) && joined) {
+            TAG.GetComponent<TextController>().setText(InputControl.getPlayerTag(input.player));
+        }
+    }
+
+    void movePlatform() {
+        float distance = Mathf.Abs(platform.transform.localPosition.y - targetY) / 5.0f;
+        float moveamt = Mathf.Max(1, distance);
+        float y = targetY;
+        
+        if (platform.transform.localPosition.y < targetY) {
+            y = platform.transform.localPosition.y + (moveamt * Time.deltaTime * deltaOffset);
+        }
+        if (platform.transform.localPosition.y > targetY)
+        {
+
+            y = platform.transform.localPosition.y - (moveamt * Time.deltaTime * deltaOffset);
+        }
+        if (distance <= 0.5f)
+        {
+            distance = 0;
+            y = targetY;
+        }
+        platform.transform.localPosition = new Vector2(platform.transform.localPosition.x, y);
+
+    }
+
+    void move() {
+        movePlatform();
+        moveBar();
+        moveArrow();
+    }
+
+    void moveBar()
+    {
+        float distance = Mathf.Abs(bar.transform.localPosition.y - targetYBar) / 5.0f;
+        float moveamt = Mathf.Max(1, distance);
+        float y = targetYBar;
+        
+        if (bar.transform.localPosition.y < targetYBar)
+        {
+            y = bar.transform.localPosition.y + (moveamt * Time.deltaTime * deltaOffset);
+        }
+        if (bar.transform.localPosition.y > targetYBar)
+        {
+
+            y = bar.transform.localPosition.y - (moveamt * Time.deltaTime * deltaOffset);
+        }
+        if (distance <= 0.5f)
+        {
+            distance = 0;
+            y = targetYBar;
+        }
+        bar.transform.localPosition = new Vector2(bar.transform.localPosition.x, y);
+
+    }
+
+    void moveArrow()
+    {
+        if (yIndex == 0) targetYArrow = headY;
+        else if (yIndex == 1) targetYArrow = superY;
+        else targetYArrow = colorY;
+
+        float distance = (Mathf.Abs(arrow.transform.localPosition.y - targetYArrow) / 10f) * 2;
+        float y = targetYArrow;
+        
+        if (arrow.transform.localPosition.y < targetYArrow)
+        {
+            y = arrow.transform.localPosition.y + (distance * Time.deltaTime * deltaOffset);
+        }
+        if (arrow.transform.localPosition.y > targetYArrow)
+        {
+
+            y = arrow.transform.localPosition.y - (distance * Time.deltaTime * deltaOffset);
+        }
+        if (distance <= 0.3f)
+        {
+            distance = 0;
+            y = targetYArrow;
+        }
+        arrow.transform.localPosition = new Vector2(arrow.transform.localPosition.x, y);
+
+        
+
+    }
+
+    void checkStart() {
+        int joy = InputControl.findStartButton();
+        if (handler.nextPlayer == 5) return;
+        if (joy != -1) {
+
+            bool result = InputControl.assignPlayerController(joy, handler.nextPlayer);
+            if (result) handler.joinUp(handler.nextPlayer);
+
+        }
+    }
+    // Update is called once per frame
+    void LateUpdate()
+    {
+        if (input.PlayerController <= 0 && !handler.SSS)
+        {
+            checkStart();
+        }
+        if (isRebinding) activeRebind();
+        getInputs();
+    }
+
+    void updateIcons() {
+        super.GetComponent<SpriteRenderer>().sprite = Camera.main.GetComponent<GameMaster>().SUPERS.Find(x => x.name == handler.supers[superIndex]).icon;
+        color.color = InputControl.string2color(handler.colors[colorIndex]);
+        body.color = color.color;
+        head.color = color.color;
+        if (ready)
+        {
+            platform.GetComponent<SpriteRenderer>().sprite = readySprite;
+        }
+        else if (!ready) {
+            string[] badtags = { "PLAYER 1", "PLAYER 2", "PLAYER 3", "PLAYER 4" };
+            platform.GetComponent<SpriteRenderer>().sprite = Controls;
+            for (int i = 0; i < badtags.Length; i++) {
+                if (InputControl.getPlayerTag(input.player) == badtags[i]) {
+                    platform.GetComponent<SpriteRenderer>().sprite = noControls;
+                }
+            }
+        }
+
+        currentColor = handler.colors[colorIndex];
+        currentSuper = handler.supers[superIndex];
+        currentHead = handler.heads[headIndex];
+
+            if (handler.heads[headIndex] == "Milk")
+            {
+                if (colorIndex != 0)
+                {
+                    selHead.GetComponent<SpriteRenderer>().sprite = Camera.main.GetComponent<SpriteLibrary>().Heads.Find(x => x.Name == "Milk2").mask;
+                    InputControl.setPlayerHead(input.player, "Milk2");
+                    head.GetComponent<HeadScript>().setHead("Milk2");
+                    currentHead = "Milk2";
+            }
+                else
+                {
+                    selHead.GetComponent<SpriteRenderer>().sprite = Camera.main.GetComponent<SpriteLibrary>().Heads.Find(x => x.Name == "Milk1").mask;
+                    InputControl.setPlayerHead(input.player, "Milk1");
+                head.GetComponent<HeadScript>().setHead("Milk1");
+                currentHead = "Milk1";
+            }
+            }
+            else
+            {
+                selHead.GetComponent<SpriteRenderer>().sprite = Camera.main.GetComponent<SpriteLibrary>().Heads.Find(x => x.Name == handler.heads[headIndex]).mask;
+                InputControl.setPlayerHead(input.player, handler.heads[headIndex]);
+                head.GetComponent<HeadScript>().setHead(handler.heads[headIndex]);
+
+            }
+
+
+    }
+
+    private void clamp()
+    {
+        if (headIndex > handler.heads.Length - 1) headIndex = 0;
+        if (headIndex < 0) headIndex = handler.heads.Length - 1;
+        if (superIndex > handler.supers.Length - 1) superIndex = 0;
+        if (superIndex < 0) superIndex = handler.supers.Length - 1;
+        if (colorIndex > handler.colors.Length - 1) colorIndex = 0;
+        if (colorIndex < 0) colorIndex = handler.colors.Length - 1;
+
+
+        if (yIndex > 2 || ready)
+        {
+            arrow.SetActive(false);
+        }
+        else arrow.SetActive(true);
+        if (InputControl.online && InputControl.onlinePlayerID != input.player) {
+            arrow.SetActive(false);
+        }
+
+        if (yIndex == 3 && !ready)
+        {
+            tagSprite.enabled = true;
+        }
+        else
+        {
+            tagSprite.enabled = false;
+        }
+        if (yIndex == 4 && !ready)
+        {
+            controlSprite.enabled = true;
+        }
+        else
+        {
+            controlSprite.enabled = false;
+        }
+
+    }
+
+
+
+    public int findSuper(string n)
+    {
+        for (int i = 0; i < handler.supers.Length; i++)
+        {
+            if (handler.supers[i] == n)
+            {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    public int findColor(string n)
+    {
+        for (int i = 0; i < handler.colors.Length; i++)
+        {
+            if (handler.colors[i] == n)
+            {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    public int findHead(string n)
+    {
+        for (int i = 0; i < handler.heads.Length; i++)
+        {
+            if (handler.heads[i] == n)
+            {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    IEnumerator resetResults() {
+        yield return new WaitForSeconds(1);
+        InputControl.camefromResults = false;
+    }
+
+    public void initJoin() {
+        joined = true;
+        
+        currentHead = InputControl.GetPlayerHead(input.player);
+        currentSuper = InputControl.GetPlayerSuper(input.player);
+        currentColor = InputControl.color2string(InputControl.GetPlayerColor(input.player));
+        superIndex = findSuper(currentSuper);
+        colorIndex = findColor(currentColor);
+        if (InputControl.GetPlayerHead(input.player) == "Milk1" || InputControl.GetPlayerHead(input.player) == "Milk2")
+        {
+            headIndex = findHead("Milk");
+        }
+        else
+        {
+            headIndex = findHead(InputControl.GetPlayerHead(input.player));
+        }
+        body.color = InputControl.string2color(currentColor);
+        arrow.transform.localPosition = new Vector2(arrow.transform.localPosition.x, headY);
+        yIndex = 0;
+    }
+
+    public void string2head(string s) {
+        if (handler != null && handler.initialized)
+        {
+            if (s == "Milk1" || s == "Milk2")
+            {
+                headIndex = findHead("Milk");
+            }
+            else
+            {
+                headIndex = findHead(s);
+            }
+        }
+    }
+
+    public void string2color(string s) {
+        if (handler != null && handler.initialized)
+        {
+            colorIndex = findColor(s);
+        }
+    }
+
+}
