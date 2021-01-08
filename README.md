@@ -2,7 +2,7 @@
 
 ## These are some gifs from the game, a link to video gameplay footage can be found [here.](https://www.youtube.com/watch?v=YgSjQWElBGg&list=PLkk-ldTRSFhnuiMp9ePe6m7-b__mOno4v)
 
-#### Sticky Hand Ability. See: [StickyHand.cs](StickyHand.cs) : <br/> ####
+#### Sticky Hand Ability. See: [StickyScript.cs](StickyScript.cs) : <br/> ####
 ![](preview/StickyHand.gif) <br/>
 
 <br/>
