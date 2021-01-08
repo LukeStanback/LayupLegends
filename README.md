@@ -3,7 +3,7 @@
 ## These are some gifs from the game, a link to video gameplay footage can be found at the bottom ##
 
 ![](preview/Selector.gif)
-
+Character Customization. See: ![](MenuInput.cs)
 
 
 
